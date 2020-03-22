@@ -14,8 +14,9 @@ deploy:
   provider: lambda
   function_name: "thedasbot-prod-trigger"
   region: "us-east-1"
-  role: "thedasbot-prod-us-east-1-lambdaRole"
+  role: "arn:aws:iam::054995062387:role/thedasbot-prod-us-east-1-lambdaRole"
   runtime: "python3.7"
-  handler_name: "handler"
+  module_name: "handler"
+  handler_name: "trigger"
   on:
     branch: master
