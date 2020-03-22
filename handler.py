@@ -21,8 +21,8 @@ def trigger(event, context):
         response = "Hello {}! Welcome to the DAS bot!".format(first_name)
     elif message.startswith("/help"):
         response = "You have invoked the help command!"
-    elif message.startswith("/debug"):
-        response = str(data)
+    elif message.startswith("/fact"):
+        response = "Here's a fun fact:"
     else:
         response = "Sorry, I don't understand. Try /help"
 
