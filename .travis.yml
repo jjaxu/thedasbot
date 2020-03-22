@@ -10,3 +10,12 @@ script:
 after_success:
   - "./ci/deploy"
 after_failure:
+deploy:
+  provider: lambda
+  function_name: "thedasbot-prod-trigger"
+  region: "us-east-1"
+  role: "thedasbot-prod-us-east-1-lambdaRole"
+  runtime: "python3.7"
+  handler_name: "handler"
+  on:
+    branch: master
