@@ -1,0 +1,19 @@
+service: thedasbot
+
+provider:
+  name: aws
+  runtime: python3.7
+  stage: prod
+  region: us-east-1
+  profile: thedasbot
+  environment:
+    TELEGRAM_TOKEN: ${env:TELEGRAM_TOKEN}
+
+functions:
+  trigger:
+    handler: handler.trigger
+    events:
+      - http:
+          path: thedasbot
+          method: post
+          cors: true
