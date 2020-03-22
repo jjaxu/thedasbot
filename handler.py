@@ -23,6 +23,9 @@ def trigger(event, context):
         response = "You have invoked the help command!"
     elif message.startswith("/debug"):
         response = str(data)
+    elif message.startswith("/joke"):
+        r = requests.get("https://icanhazdadjoke.com/", headers={"Accept": "text/plain"})
+        response = r.content.decode() if r.ok else "Oops! Can't fetch joke right now."
     else:
         response = "Sorry, I don't understand. Try /help"
 
