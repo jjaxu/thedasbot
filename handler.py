@@ -13,19 +13,30 @@ BASE_URL = "https://api.telegram.org/bot{}".format(TOKEN)
 def trigger(event, context):
 
     data = json.loads(event["body"])
-
     if "inline_query" in data:
         return handle_inline_query(data)
 
+    # Is the message edited?
     msg_key = "edited_message" if "edited_message" in data else "message"
+
+    # event does not contain relevant text data
+    if "text" not in data[msg_key]:
+        return {"statusCode": 200}
 
     message = str(data[msg_key]["text"])
     chat_id = data[msg_key]["chat"]["id"]
-    first_name = data[msg_key]["chat"]["first_name"]
     parse_mode = None
 
     if message.startswith("/start"):
-        response = "Hello {}! Welcome to the DAS bot!".format(first_name)
+        if data[msg_key]["chat"]["type"] == "private":
+            response = "Hello {}! Welcome to the DAS bot!".format(data[msg_key]["chat"]["first_name"])
+        elif data[msg_key]["chat"]["type"] == "group":
+            response = "Hello {}! I am the DAS Bot, {} has summoned me here!".format(
+                data[msg_key]["chat"]["title"],
+                data[msg_key]["from"]["first_name"]
+            )
+        else:
+            response = "Hello"
     elif message.startswith("/help"):
         response = "You have invoked the help command!"
     elif message.startswith("/debug"):
