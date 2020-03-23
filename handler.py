@@ -17,10 +17,12 @@ def trigger(event, context):
     if "inline_query" in data:
         return handle_inline_query(data)
 
+    msg_key = "edited_message" if "edited_message" in data else "message"
 
-    message = str(data["message"]["text"])
-    chat_id = data["message"]["chat"]["id"]
-    first_name = data["message"]["chat"]["first_name"]
+    message = str(data[msg_key]["text"])
+    chat_id = data[msg_key]["chat"]["id"]
+    first_name = data[msg_key]["chat"]["first_name"]
+    parse_mode = None
 
     if message.startswith("/start"):
         response = "Hello {}! Welcome to the DAS bot!".format(first_name)
@@ -33,7 +35,8 @@ def trigger(event, context):
         response = r.content.decode() if r.ok else "Oops! Can't fetch joke right now."
     elif message.startswith("/fact"):
         r = requests.get("https://www.mentalfloss.com/api/facts")
-        response = str(r.json()[0]['headline']).replace("<em>", "__").replace("</em>", "__").replace("<i>", "__").replace("</i>", "__") if r.ok else "Oops! Can't fetch fact right now."
+        response = str(r.json()[0]['headline']) if r.ok else "Oops! Can't fetch fact right now."
+        parse_mode = "HTML"
     else:
         response = "Sorry, I don't understand. Try /help"
 
@@ -41,6 +44,9 @@ def trigger(event, context):
         "chat_id": chat_id,
         "text": response.encode("utf8")
     }
+    if parse_mode:
+        data["parse_mode"] = parse_mode
+
     url = BASE_URL + "/sendMessage"
     requests.post(url, data)
 
