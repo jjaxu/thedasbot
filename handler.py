@@ -6,6 +6,8 @@ sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), "./ven
 
 import requests
 
+from dynamodb import setUser, getUser, clearUser
+
 TOKEN = os.environ['TELEGRAM_TOKEN']
 BASE_URL = "https://api.telegram.org/bot{}".format(TOKEN)
 
@@ -25,6 +27,7 @@ def trigger(event, context):
 
     message = str(data[msg_key]["text"])
     chat_id = data[msg_key]["chat"]["id"]
+    user_id = data[msg_key]["from"]["id"]
     parse_mode = None
 
     if message.startswith("/start"):
@@ -48,6 +51,17 @@ def trigger(event, context):
         r = requests.get("https://www.mentalfloss.com/api/facts")
         response = str(r.json()[0]['headline']) if r.ok else "Oops! Can't fetch fact right now."
         parse_mode = "HTML"
+    elif message.startswith("/clear"):
+        response = "Entry cleared!" if clearUser(user_id) else "Nothing to clear!"
+    elif message.startswith("/get"):
+        response = getUser(user_id) or "Nothing to get! Use /store to set"
+    elif message.startswith("/store"):
+        index = message.strip().find(" ")
+        if index < 0:
+            response = "Nothing to store!"
+        else:
+            result = setUser(user_id, message[index + 1:])
+            response = "You stored \"{}\". Use /get to fetch it".format(result) if result else "Failed to store!"
     else:
         response = "Sorry, I don't understand. Try /help"
 
@@ -55,6 +69,7 @@ def trigger(event, context):
         "chat_id": chat_id,
         "text": response.encode("utf8")
     }
+    
     if parse_mode:
         data["parse_mode"] = parse_mode
 
