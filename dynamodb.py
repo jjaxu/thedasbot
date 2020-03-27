@@ -1,17 +1,15 @@
 import boto3
 
 region_name = 'us-east-1'
-profile_name = "thedasbot"
 resource = 'dynamodb'
 table_name = 'users'
 field_name = 'item'
 
-session = boto3.Session(profile_name=profile_name, region_name=region_name)
-client = session.client('dynamodb')
-boto3.setup_default_session(profile_name=profile_name)
-
-dynamodb = boto3.resource(resource, region_name=region_name)
-table = dynamodb.Table(table_name)
+session = boto3.Session(region_name=region_name)
+client = session.client(resource)
+# boto3.setup_default_session(profile_name=profile_name)
+# dynamodb = boto3.resource(resource, region_name=region_name) # Not used for now
+# table = dynamodb.Table(table_name) # Not used for now
 
 def clearUser(id) -> bool:
     try:
