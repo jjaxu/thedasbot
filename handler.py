@@ -1,22 +1,24 @@
 import json
 import os
 import sys
+import requests
 
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), "./vendored"))
 
-import requests
-
 from dynamodb import setUser, getUser, clearUser
+from trivia import Trivia
 
 TOKEN = os.environ['TELEGRAM_TOKEN']
 BASE_URL = "https://api.telegram.org/bot{}".format(TOKEN)
-
 
 def trigger(event, context):
 
     data = json.loads(event["body"])
     if "inline_query" in data:
         return handle_inline_query(data)
+
+    if "callback_query" in data:
+        return handle_callback_query(data)
 
     # Is the message edited?
     msg_key = "edited_message" if "edited_message" in data else "message"
@@ -29,6 +31,7 @@ def trigger(event, context):
     chat_id = data[msg_key]["chat"]["id"]
     user_id = data[msg_key]["from"]["id"]
     parse_mode = None
+    other_params = None
 
     if message.startswith("/start"):
         if data[msg_key]["chat"]["type"] == "private":
@@ -62,19 +65,55 @@ def trigger(event, context):
         else:
             result = setUser(user_id, message[index + 1:])
             response = "You stored \"{}\". Use /get to fetch it".format(result) if result else "Failed to store!"
+    elif message.startswith("/trivia"):
+        params = {
+            "amount": 1,
+            # "category": 31,
+            "type": "multiple"
+        }
+        r = requests.get("https://opentdb.com/api.php", params=params)
+        try:
+            trivia = Trivia(r.json())
+        except Exception as err:
+            response = "Failed to fetch trivia question!"
+        else:
+            response = trivia.formatted_response()
+            correct_ans = chr(trivia.correct_answer_index() + 65)
+            buttons = [ {"text": chr(i+65), "callback_data": "{}{}".format(chr(i+65), correct_ans) } for i in range(4) ]
+
+            other_params = {
+                "reply_markup": {
+                    "inline_keyboard":
+                    [
+                        [
+                            buttons[0],
+                            buttons[1]
+                        ],
+                        [
+                            buttons[2],
+                            buttons[3]
+                        ]
+                    ],
+                }
+            }
     else:
         response = "Sorry, I don't understand. Try /help"
 
     data = {
         "chat_id": chat_id,
-        "text": response.encode("utf8")
+        "text": response
     }
     
     if parse_mode:
         data["parse_mode"] = parse_mode
+    if other_params:
+        data.update(other_params)
 
     url = BASE_URL + "/sendMessage"
-    requests.post(url, data)
+    res = requests.post(url, json=data)
+    if not res.ok:
+        print(res.status_code)
+        print(res.text)
 
     return {"statusCode": 200}
 
@@ -99,4 +138,39 @@ def handle_inline_query(data):
     }
     url = BASE_URL + "/answerInlineQuery"
     res = requests.post(url, json=data)
+    return {"statusCode": 200}
+
+def handle_callback_query(data):
+    query = data["callback_query"]
+    chat_id = query["message"]["chat"]["id"]
+    message_id = query["message"]["message_id"]
+    old_text = query["message"]["text"]
+    callback_data = query["data"]
+    if callback_data == "NULL":
+        return {"statusCode": 200}
+
+    try:
+        if callback_data[0] == callback_data[1]:
+            res_text = "*{}* is correct!".format(callback_data[0])
+        else:
+            res_text = "*{}* is incorrect! The correct answer is *{}*".format(callback_data[0], callback_data[1])
+    except:
+        print("something went wrong, returning...")
+        return {"statusCode": 200}
+
+    url2 = BASE_URL + "/editMessageText"
+    resp2 = {
+        "chat_id": chat_id,
+        "message_id": message_id,
+        "text": "{}\n\n{}".format(old_text, res_text),
+        "reply_markup": {
+            "inline_keyboard": [],
+        },
+        "parse_mode": "Markdown"
+    }
+
+    res = requests.post(url2, json=resp2)
+    if not res.ok:
+        print(res.text)
+
     return {"statusCode": 200}
