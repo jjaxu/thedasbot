@@ -1,9 +1,10 @@
 import json
 import os
 import sys
-import requests
 
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), "./vendored"))
+
+import requests
 
 from dynamodb import setUser, getUser, clearUser
 from trivia import Trivia
