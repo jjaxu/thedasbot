@@ -12,7 +12,7 @@ TOKEN = os.environ['TELEGRAM_TOKEN']
 BASE_URL = "https://api.telegram.org/bot{}".format(TOKEN)
 
 def trigger(event, context):
-
+    msg_key = "message"
     data = json.loads(event["body"])
     if "inline_query" in data:
         return handle_inline_query(data)
@@ -20,11 +20,8 @@ def trigger(event, context):
     if "callback_query" in data:
         return handle_callback_query(data)
 
-    # Is the message edited?
-    msg_key = "edited_message" if "edited_message" in data else "message"
-
-    # event does not contain relevant text data
-    if "text" not in data[msg_key]:
+    # don't care about edited messages or event does not contain relevant text data
+    if "edited_message" in data or "text" not in data[msg_key]:
         return {"statusCode": 200}
 
     message = str(data[msg_key]["text"])
@@ -66,16 +63,36 @@ def trigger(event, context):
             result = setUser(user_id, message[index + 1:])
             response = "You stored \"{}\". Use /get to fetch it".format(result) if result else "Failed to store!"
     elif message.startswith("/trivia"):
+        ok = True
+        args = message.strip().split(" ")
         params = {
             "amount": 1,
-            # "category": 31,
             "type": "multiple"
         }
-        r = requests.get("https://opentdb.com/api.php", params=params)
+        if len(args) > 1:
+            id = Trivia.getCategoryId(args[1])
+            if id == "any": pass
+            elif id:
+                params["category"] = id
+            else:
+                trivia_err = " No category associated with \"{}\"".format(args[1])
+                ok = False
+
+        if ok and len(args) > 2:
+            difficulty = args[2].lower()
+            if difficulty in ("easy", "medium", "hard"):
+                params["difficulty"] = difficulty
+            elif difficulty == "any": pass
+            else:
+                trivia_err = " No difficulty associated with \"{}\"".format(args[2])
+                ok = False
+
+        r = requests.get("https://opentdb.com/api.php", params=params) if ok else None
+        
         try:
             trivia = Trivia(r.json())
         except Exception as err:
-            response = "Failed to fetch trivia question!"
+            response = "Failed to fetch trivia question!" + (trivia_err or "")
         else:
             response = trivia.formatted_response()
             correct_ans = chr(trivia.correct_answer_index() + 65)
