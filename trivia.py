@@ -1,10 +1,25 @@
 from html import unescape
+import requests
 
-def handle_trivia():
-    print("Trivia")
 
+def fetchCategories():
+    res = requests.get("https://opentdb.com/api_category.php")
+    if not res.ok:
+        return dict()
+    return res.json()
 
 class Trivia(object):
+    category_ids = fetchCategories()
+
+    @classmethod
+    def getCategoryId(cls, category_name: str) -> int:
+        if category_name.lower() == "any":
+            return "any"
+        for category in cls.category_ids.get("trivia_categories") or []:
+            name = category["name"].lower()
+            if category_name.lower().strip() in name:
+                return int(category["id"])
+
     def __init__(self, json_response):
         if json_response["response_code"] != 0:
             raise RuntimeError("Bad Trivia Response")
