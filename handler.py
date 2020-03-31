@@ -8,6 +8,7 @@ import requests
 
 from dynamodb import setUser, getUser, clearUser
 from trivia import Trivia
+from boterror import BotError
 
 TOKEN = os.environ['TELEGRAM_TOKEN']
 BASE_URL = "https://api.telegram.org/bot{}".format(TOKEN)
@@ -64,36 +65,19 @@ def trigger(event, context):
             result = setUser(user_id, message[index + 1:])
             response = "You stored \"{}\". Use /get to fetch it".format(result) if result else "Failed to store!"
     elif message.startswith("/trivia"):
-        ok = True
+        parse_mode = "Markdown"
         args = message.strip().split(" ")
-        params = {
-            "amount": 1,
-            "type": "multiple"
-        }
+        category, difficulty = None, None
+
         if len(args) > 1:
-            id = Trivia.getCategoryId(args[1])
-            if id == "any": pass
-            elif id:
-                params["category"] = id
-            else:
-                trivia_err = " No category associated with \"{}\"".format(args[1])
-                ok = False
+            category = args[1]
+            if len(args) > 2:
+                difficulty = args[2]
 
-        if ok and len(args) > 2:
-            difficulty = args[2].lower()
-            if difficulty in ("easy", "medium", "hard"):
-                params["difficulty"] = difficulty
-            elif difficulty == "any": pass
-            else:
-                trivia_err = " No difficulty associated with \"{}\"".format(args[2])
-                ok = False
-
-        r = requests.get("https://opentdb.com/api.php", params=params) if ok else None
-        
         try:
-            trivia = Trivia(r.json())
-        except Exception as err:
-            response = "Failed to fetch trivia question!" + (trivia_err or "")
+            trivia = Trivia(category, difficulty)
+        except BotError as err:
+            response = str(err)
         else:
             response = trivia.formatted_response()
             correct_ans = chr(trivia.correct_answer_index() + 65)
