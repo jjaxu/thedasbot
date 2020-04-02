@@ -67,7 +67,6 @@ class Trivia(object):
             raise BotError(TRIVIA_BASE_ERROR_MESSAGE)
 
         r = json_response["results"][0]
-        print(r)
         self.category = unescape(r["category"])
         self.type = unescape(r["type"])
         self.difficulty = unescape(r["difficulty"])
