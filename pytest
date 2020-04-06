@@ -1,5 +1,0 @@
-#!/bin/bash
-
-echo "Running tests..."
-python3 tests.py
-echo "=== Tests Passed ==="
