@@ -4,7 +4,7 @@ import sys
 from commands import CommandParser
 from botquery import BotQuery
 from boterror import BotError
-from config import BASE_URL
+from config import BASE_URL, ALLOW_EDITED_MESSAGES
 from constants import *
 
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), "./vendored"))
@@ -24,6 +24,8 @@ def trigger(event_raw:dict, context):
         print("Caught checked exception:\n\t{}".format(err))
     except Exception as err:
         print("Caught unchecked exception:\n\t{}".format(err))
+    finally:
+        return {"statusCode": 200}
 
 
 def handle_normal_query(bot_query: BotQuery):
