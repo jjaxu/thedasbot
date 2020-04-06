@@ -6,7 +6,7 @@ install:
   - pip install -r requirements.txt
 before_script: 
 script:
-  - ./pytest 
+  - ./test/pytest
 after_success:
   - "./ci/deploy"
 after_failure:
