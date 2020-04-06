@@ -4,8 +4,8 @@ import sys
 from commands import CommandParser
 from botquery import BotQuery
 from boterror import BotError
+from config import BASE_URL
 from constants import *
-from config import *
 
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), "./vendored"))
 

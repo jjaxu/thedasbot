@@ -1,9 +1,3 @@
-from os import environ
-
-# Bot token & API
-TOKEN = environ['TELEGRAM_TOKEN']
-BASE_URL = "https://api.telegram.org/bot{}".format(TOKEN)
-
 # API dict constants
 INLINE_QUERY_KEY = "inline_query"
 CALLBACK_QUERY_KEY = "callback_query"
