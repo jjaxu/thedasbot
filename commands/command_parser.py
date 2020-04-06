@@ -1,6 +1,7 @@
 from .botcommand import BotCommand
 from .start_command import StartCommand
 from .help_command import HelpCommand
+from .joke_command import JokeCommand
 
 import sys
 sys.path.append('..')
@@ -9,7 +10,8 @@ from botquery import BotQuery
 
 AVAILABLE_COMMANDS = {
     "start": StartCommand,
-    "help": HelpCommand
+    "help": HelpCommand,
+    "joke": JokeCommand
 }
 
 class CommandParser(object):

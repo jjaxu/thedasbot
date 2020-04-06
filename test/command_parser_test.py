@@ -1,7 +1,7 @@
 import unittest
 import setup
 
-from commands import CommandParser, StartCommand, HelpCommand
+from commands import *
 from botquery import BotQuery
 
 class CommandParserTest(unittest.TestCase):
@@ -20,6 +20,14 @@ class CommandParserTest(unittest.TestCase):
         self.assertIsInstance(result, HelpCommand)
         self.assertIs(query, result.query)
         self.assertEqual(result.command, "help")
+    
+    def test_joke_command(self):
+        query = BotQuery()
+        query.message = "/JOke 1234"
+        result = CommandParser.parse_command(query)
+        self.assertIsInstance(result, JokeCommand)
+        self.assertIs(query, result.query)
+        self.assertEqual(result.command, "joke")
 
     def test_empty_command(self):
         query = BotQuery()
