@@ -1,13 +1,13 @@
 import os
 import sys
 
+sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), "./vendored"))
+
 from commands import CommandParser
 from botquery import BotQuery
 from boterror import BotError
 from config import BASE_URL, ALLOW_EDITED_MESSAGES
 from constants import *
-
-sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), "./vendored"))
 
 import requests
 
