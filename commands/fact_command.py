@@ -18,7 +18,8 @@ class FactCommand(BotCommand):
         try:
             response = requests.get("https://www.mentalfloss.com/api/facts", headers={"Accept": "text/plain"})
             if response.ok:
-                return str(response.json()[0]['headline'])
+                fact = response.json()[0]
+                return '<a href="{}">​​​​​​​​​​​</a>{}'.format(fact["primaryImage"], str(fact['headline']))
         except Exception as err:
             print("Unable to fetch fact:\n\t{}".format(str(err)))
         return "Oops! Can't fetch fact right now."
