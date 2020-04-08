@@ -6,7 +6,7 @@ from unittest.mock import patch
 from commands import JokeCommand
 from botquery import BotQuery
 
-class HelpCommandTest(unittest.TestCase):
+class JokeCommandTest(unittest.TestCase):
     def test_successful_simple(self):
         query = BotQuery()
         joke_command = JokeCommand(query)

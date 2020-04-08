@@ -29,6 +29,14 @@ class CommandParserTest(unittest.TestCase):
         self.assertIs(query, result.query)
         self.assertEqual(result.command, "joke")
 
+    def test_fact_command(self):
+        query = BotQuery()
+        query.message = " /FACT     "
+        result = CommandParser.parse_command(query)
+        self.assertIsInstance(result, FactCommand)
+        self.assertIs(query, result.query)
+        self.assertEqual(result.command, "fact")
+
     def test_empty_command(self):
         query = BotQuery()
         query.message = "/"

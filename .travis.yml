@@ -4,7 +4,8 @@ python:
 before_install:
 install:
   - pip install -r requirements.txt
-before_script: 
+before_script:
+  - python handler.py
 script:
   - ./test/pytest
 after_success:
