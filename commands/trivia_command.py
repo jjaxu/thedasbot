@@ -1,5 +1,12 @@
-from botcommand import BotCommand
+import requests
+
+from .botcommand import BotCommand
+from boterror import BotError
+from botquery import BotQuery
 
 class TriviaCommand(BotCommand):
-    def __init__(self, command):
-        super().__init__(command)
+    def execute(self):
+        pass
+
+    def handle_callback_query(self):
+        pass

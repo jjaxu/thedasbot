@@ -3,17 +3,17 @@ from .start_command import StartCommand
 from .help_command import HelpCommand
 from .joke_command import JokeCommand
 from .fact_command import FactCommand
-
-import sys
-sys.path.append('..')
-
+from .trivia_command import TriviaCommand
+from .invalid_command import InvalidCommand
 from botquery import BotQuery
 
+# This indicates the acceptable commands
 AVAILABLE_COMMANDS = {
     "start": StartCommand,
     "help": HelpCommand,
     "joke": JokeCommand,
-    "fact": FactCommand
+    "fact": FactCommand,
+    "trivia": TriviaCommand
 }
 
 class CommandParser(object):
@@ -24,4 +24,4 @@ class CommandParser(object):
 
         if cmd_name.startswith("/") and cmd_name[1:] in AVAILABLE_COMMANDS:
             return AVAILABLE_COMMANDS[cmd_name[1:]](bot_query)
-        return None
+        return InvalidCommand(bot_query)

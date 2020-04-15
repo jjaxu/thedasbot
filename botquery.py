@@ -44,7 +44,7 @@ class BotQuery(object):
                 result.has_callback_query
             ): raise ValueError("Invalid or unsupported query event while parsing")
         except Exception as err:
-            raise BotError("BotQuery parsing failed:\n\t{}".format(str(err)))
+            raise BotError(f"BotQuery parsing failed:\n\t{str(err)}")
         else:
             return result
 
