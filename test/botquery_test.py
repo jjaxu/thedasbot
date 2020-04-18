@@ -1,5 +1,4 @@
 import unittest
-import setup
 
 from botquery import BotQuery
 from boterror import BotError

@@ -1,4 +1,7 @@
 #!/bin/bash
-cd test
-python3 -m unittest *.py
-cd ..
+python -m unittest discover -s test -p "*_test.py"
+if [ $? -ne 0 ]
+then
+    echo "=== Test Failed! ==="
+    exit 1
+fi

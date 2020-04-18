@@ -2,7 +2,7 @@ from json import loads
 from boterror import BotError
 from constants import *
 
-class BotQuery(object):
+class BotQuery:
 
     @classmethod
     def parse_event(cls, event_json, load_json=True):
@@ -44,12 +44,11 @@ class BotQuery(object):
                 result.has_callback_query
             ): raise ValueError("Invalid or unsupported query event while parsing")
         except Exception as err:
-            raise BotError("BotQuery parsing failed:\n\t{}".format(str(err)))
+            raise BotError(f"BotQuery parsing failed:\n\t{str(err)}")
         else:
             return result
 
     def __init__(self):
-        super().__init__()
         self.is_private = False
         self.is_group = False
         self.is_edited = False
