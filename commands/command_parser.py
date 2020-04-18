@@ -16,7 +16,8 @@ AVAILABLE_COMMANDS = {
     "trivia": TriviaCommand
 }
 
-class CommandParser(object):
+class CommandParser:
+    
     @classmethod
     def parse_command(cls, bot_query: BotQuery) -> BotCommand:
         args = str(bot_query.message).strip().split()

@@ -12,7 +12,7 @@ def fetchCategories():
         return dict()
     return res.json()
 
-class Trivia(object):
+class Trivia:
     category_dict = fetchCategories()
     difficulty_list = ["easy", "medium", "hard"]
 

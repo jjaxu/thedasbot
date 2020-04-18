@@ -10,3 +10,6 @@ class TriviaCommand(BotCommand):
 
     def handle_callback_query(self):
         pass
+
+    def format_response_json(self, response_json):
+        pass

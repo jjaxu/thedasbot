@@ -1,14 +1,11 @@
 import requests
 
+from constants import *
 from .botcommand import BotCommand
 from boterror import BotError
 from botquery import BotQuery
 
 class FactCommand(BotCommand):
-    def __init__(self, bot_query: BotQuery):
-        super().__init__(bot_query)
-        self.parse_mode = "HTML"
-
     def execute(self):
         result = None
         try:
@@ -20,3 +17,6 @@ class FactCommand(BotCommand):
             print(f"Unable to fetch fact:\n\t{str(err)}")
 
         self.handle_normal_query(result or "Oops! Can't fetch fact right now.")
+    
+    def format_response_json(self):
+        self.response_json[PARSE_MODE_KEY] = "HTML"
