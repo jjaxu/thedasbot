@@ -1,6 +1,6 @@
 import requests
 
-from constants import *
+from constants import PARSE_MODE_KEY
 from .botcommand import BotCommand
 from boterror import BotError
 from botquery import BotQuery
