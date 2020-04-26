@@ -45,9 +45,9 @@ class TriviaCommandTest(unittest.TestCase):
             self.assertEqual(Trivia.get_category_id("cat1"), 1)
             self.assertEqual(Trivia.get_category_id("cat2"), 2)
             self.assertEqual(Trivia.get_category_id("cat3"), 3)
-            self.assertEqual(Trivia.get_category_id("cAT1  "), 1)
-            self.assertEqual(Trivia.get_category_id("  CaT2"), 2)
-            self.assertEqual(Trivia.get_category_id("   cAt3   "), 3)
+            self.assertEqual(Trivia.get_category_id("cAT1"), 1)
+            self.assertEqual(Trivia.get_category_id("CaT2"), 2)
+            self.assertEqual(Trivia.get_category_id("cAt3"), 3)
 
             self.assertEqual(Trivia.get_category_id("Any"), 0)
             self.assertEqual(Trivia.get_category_id(None), 0)
@@ -168,14 +168,24 @@ class TriviaCommandTest(unittest.TestCase):
             trivia_command.handle_normal_query.assert_called_once_with("trivia question")
 
     @patch("commands.trivia_command.print")
-    def test_trivia_fetch_question_fail(self, _):
+    def test_trivia_fetch_question_fail_boterror(self, _):
+        query = BotQuery()
+        trivia_command = TriviaCommand(query, ["/trivia"])
+
+        with patch("trivia.Trivia.fetch_question", side_effect=BotError("trivia error")):
+            trivia_command.handle_normal_query = Mock() 
+            trivia_command.execute()
+            trivia_command.handle_normal_query.assert_called_once_with("trivia error")
+    
+    @patch("commands.trivia_command.print")
+    def test_trivia_fetch_question_fail_unhandled_error(self, _):
         query = BotQuery()
         trivia_command = TriviaCommand(query, ["/trivia"])
 
         with patch("trivia.Trivia.fetch_question", side_effect=Exception("trivia error")):
             trivia_command.handle_normal_query = Mock() 
             trivia_command.execute()
-            trivia_command.handle_normal_query.assert_called_once_with("trivia error")
+            trivia_command.handle_normal_query.assert_called_once_with("Failed to fetch trivia question!")
 
     def test_trivia_callback_query(self):
         query = BotQuery()

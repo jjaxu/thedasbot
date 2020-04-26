@@ -23,3 +23,6 @@ PRIVATE_STR = "private"
 # API endpoints
 SEND_MESSAGE_ENDPOINT = "sendMessage"
 EDIT_MESSAGE_ENDPOINT = "editMessageText"
+
+# Other
+ASCII_ALPHABET_OFFSET = 65

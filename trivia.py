@@ -23,30 +23,45 @@ class Trivia:
                 print(f"Failed to fetch trivia categories\n\t{str(err)}")
         return cls.category_dict
 
+    """Formats the help text string as the usage text, list of categories and difficulties in different sections"""
     @classmethod
     def get_help_text(cls) -> str:
-        category_list = [("\* " + item["name"]) for item in (cls.get_category_dict().get("trivia_categories", []))]
-        difficulty_list = [("\* " + item.capitalize()) for item in cls.difficulty_list]
+
+        # command usage text
+        usage_text = "/trivia [ <category> | any ] [ <difficulty> | any ]"
+
+        # creates list of categories prepended by '*' for visuals
+        category_list = [(f"\* {item['name']}") for item in (cls.get_category_dict().get("trivia_categories", []))]
+
+        # creates list of difficulties, with the first letter capiticalized, prepended by '*' for visuals
+        difficulty_list = [(f"\* {item.capitalize()}") for item in cls.difficulty_list]
         nl = '\n'
-        return f"Usage: */trivia [category] [difficulty]*\n\n*Categories:*\n{nl.join(category_list)}\n\n*Difficulties:*\n{nl.join(difficulty_list)}"
+        return f"Usage:\n*{usage_text}*\n\n*Categories:*\n{nl.join(category_list)}\n\n*Difficulties:*\n{nl.join(difficulty_list)}"
 
     @classmethod
     def get_category_id(cls, category_name: str) -> int:
-        if not category_name or category_name.lower() == "any":
+        if not category_name:
             return 0
-        
-        category_lower = category_name.lower()
+
+        category_name_lower = category_name.lower()
+        if category_name_lower == "any":
+            return 0
 
         for category in cls.get_category_dict().get("trivia_categories", []):
             name = category["name"].lower()
-            if category_name.lower().strip() in name:
+            if category_name_lower in name:
                 return int(category["id"])
         raise BotError(f"{TRIVIA_BASE_ERROR_MESSAGE} No category associated with '{category_name}'")
     
     @classmethod
     def get_difficulty(cls, difficulty: str) -> str:
-        if not difficulty or difficulty.lower() == "any": return None
+        if not difficulty:
+            return None
+
         difficulty_lower = difficulty.lower()
+        if difficulty_lower == "any":
+            return None
+        
         if difficulty_lower not in cls.difficulty_list:
             raise BotError(f"{TRIVIA_BASE_ERROR_MESSAGE} No difficulty associated with '{difficulty}'")
         return difficulty_lower

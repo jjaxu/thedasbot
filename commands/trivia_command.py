@@ -1,6 +1,6 @@
 import requests
 
-from constants import PARSE_MODE_KEY, EDIT_MESSAGE_ENDPOINT
+from constants import PARSE_MODE_KEY, EDIT_MESSAGE_ENDPOINT, ASCII_ALPHABET_OFFSET
 from config import BASE_URL
 from .botcommand import BotCommand
 from boterror import BotError
@@ -13,10 +13,14 @@ class TriviaCommand(BotCommand):
         self.trivia = None
 
     def execute(self):
-        if self.query.has_callback_query:
-            self.handle_callback_query()
-            return
-        category, difficulty = None, None
+        if self.query.has_callback_query: # user answered a previous question
+            self.execute_question_answered()
+        else: # user requests a new question
+            self.execute_get_new_question()
+
+    def execute_get_new_question(self):
+        category = None
+        difficulty = None
 
         if len(self.command_arguments) > 1:
             category = self.command_arguments[1]
@@ -34,18 +38,30 @@ class TriviaCommand(BotCommand):
             self.handle_normal_query(str(bot_err))
         except Exception as err:
             print(f"TriviaCommand Error (Unchecked):\n\t{err}")
-            self.handle_normal_query(str(err))
+            self.handle_normal_query(TRIVIA_BASE_ERROR_MESSAGE)
         else:
             self.handle_normal_query(self.trivia.formatted_response())
-    
+
+    def execute_question_answered(self):
+        self.handle_callback_query()
+
     def format_response_json(self):
         self.response_json[PARSE_MODE_KEY] = "Markdown"
 
         if not self.trivia:
             return
 
-        correct_ans = chr(self.trivia.correct_answer_index() + 65)
-        buttons = [ {"text": chr(i+65), "callback_data": f"{chr(i+65)}{correct_ans}/trivia" } for i in range(4) ]
+        # Find the letter of the correct answer from its index. 0 -> A, 1 -> B, 2 -> C and 3 -> D
+        correct_ans = chr(self.trivia.correct_answer_index() + ASCII_ALPHABET_OFFSET)
+
+        # Formats the payload of the multiple choice buttons as "<chosen_answer><correct_answer>/trivia" so it can be processed when the user clicks it
+        buttons = [
+            { 
+                "text": char,
+                "callback_data": f"{char}{correct_ans}/trivia" 
+            }
+            for char in ["A", "B", "C", "D"]
+        ]
 
         self.response_json["reply_markup"] = {
             "inline_keyboard": [
