@@ -246,6 +246,7 @@ class BotQueryTest(unittest.TestCase):
         self.assertIsNotNone(query.callback_query, "There should be a callback query property!")
 
         callback_query = query.callback_query
+        self.assertEqual(callback_query.callback_data, "DD")
         self.assertFalse(callback_query.is_private, "is_private is wrong!")
         self.assertTrue(callback_query.is_group, "is_group is wrong!")
         self.assertFalse(callback_query.is_edited, "is_edited is wrong!")

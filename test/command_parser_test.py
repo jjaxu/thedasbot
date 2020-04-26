@@ -45,6 +45,16 @@ class CommandParserTest(unittest.TestCase):
         result = CommandParser.parse_command(query)
         self.assertIsInstance(result, TriviaCommand)
         self.assertIs(query, result.query)
+    
+    def test_trivia_command_callback(self):
+        query = BotQuery()
+        query.has_callback_query = True
+        query.callback_query = BotQuery()
+        query.callback_query.callback_data = "payload here/trivia"
+
+        result = CommandParser.parse_command(query)
+        self.assertIsInstance(result, TriviaCommand)
+        self.assertIs(query, result.query)
 
     def test_empty_command(self):
         query = BotQuery()

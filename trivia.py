@@ -3,49 +3,73 @@ from boterror import BotError
 
 import requests
 
-TRIVIA_BASE_URL = "https://opentdb.com/"
+TRIVIA_BASE_URL = "https://opentdb.com"
 TRIVIA_BASE_ERROR_MESSAGE = "Failed to fetch trivia question!"
-
-def fetchCategories():
-    res = requests.get(TRIVIA_BASE_URL + "api_category.php")
-    if not res.ok:
-        return dict()
-    return res.json()
+RESPONSE_CODE_STR = "response_code"
+RESULTS_STR = "results"
 
 class Trivia:
-    category_dict = fetchCategories()
+    category_dict = dict()
     difficulty_list = ["easy", "medium", "hard"]
 
     @classmethod
-    def getHelpText(cls) -> str:
-        category_list = [("\* " + item["name"]) for item in (cls.category_dict.get("trivia_categories") or [])]
-        difficulty_list = [("\* " + item.capitalize()) for item in cls.difficulty_list]
-        return "Usage: */trivia [category] [difficulty]*\n\n*Categories:*\n{}\n\n*Difficulties:*\n{}".format("\n".join(category_list), "\n".join(difficulty_list))
+    def get_category_dict(cls):
+        if not cls.category_dict:
+            try:
+                res = requests.get(f"{TRIVIA_BASE_URL}/api_category.php")
+                if res.ok:
+                    cls.category_dict = res.json()
+            except Exception as err:
+                print(f"Failed to fetch trivia categories\n\t{str(err)}")
+        return cls.category_dict
+
+    """Formats the help text string as the usage text, list of categories and difficulties in different sections"""
+    @classmethod
+    def get_help_text(cls) -> str:
+
+        # command usage text
+        usage_text = "/trivia [ <category> | any ] [ <difficulty> | any ]"
+
+        # creates list of categories prepended by '*' for visuals
+        category_list = [(f"\* {item['name']}") for item in (cls.get_category_dict().get("trivia_categories", []))]
+
+        # creates list of difficulties, with the first letter capiticalized, prepended by '*' for visuals
+        difficulty_list = [(f"\* {item.capitalize()}") for item in cls.difficulty_list]
+        nl = '\n'
+        return f"Usage:\n*{usage_text}*\n\n*Categories:*\n{nl.join(category_list)}\n\n*Difficulties:*\n{nl.join(difficulty_list)}"
 
     @classmethod
-    def getCategoryId(cls, category_name: str) -> int:
-        if not category_name or category_name.lower() == "any": return 0
-        category_lower = category_name.lower()
-        if category_lower == "help":
-            raise BotError(cls.getHelpText())
+    def get_category_id(cls, category_name: str) -> int:
+        if not category_name:
+            return 0
 
-        for category in cls.category_dict.get("trivia_categories") or []:
+        category_name_lower = category_name.lower()
+        if category_name_lower == "any":
+            return 0
+
+        for category in cls.get_category_dict().get("trivia_categories", []):
             name = category["name"].lower()
-            if category_name.lower().strip() in name:
+            if category_name_lower in name:
                 return int(category["id"])
-        raise BotError("{} No category associated with '{}'".format(TRIVIA_BASE_ERROR_MESSAGE, category_name))
+        raise BotError(f"{TRIVIA_BASE_ERROR_MESSAGE} No category associated with '{category_name}'")
     
     @classmethod
-    def getDifficulty(cls, difficulty: str) -> str:
-        if not difficulty or difficulty.lower() == "any": return None
-        difficulty = difficulty.lower()
-        if difficulty not in cls.difficulty_list:
-            raise BotError("{} No difficulty associated with '{}'".format(TRIVIA_BASE_ERROR_MESSAGE, difficulty))
-        return difficulty
+    def get_difficulty(cls, difficulty: str) -> str:
+        if not difficulty:
+            return None
 
-    def __init__(self, category, difficulty):
-        category_id = self.getCategoryId(category)
-        difficulty = self.getDifficulty(difficulty)
+        difficulty_lower = difficulty.lower()
+        if difficulty_lower == "any":
+            return None
+        
+        if difficulty_lower not in cls.difficulty_list:
+            raise BotError(f"{TRIVIA_BASE_ERROR_MESSAGE} No difficulty associated with '{difficulty}'")
+        return difficulty_lower
+
+    @classmethod
+    def fetch_question(cls, category=None, difficulty=None):
+        category_id = cls.get_category_id(category)
+        difficulty = cls.get_difficulty(difficulty)
 
         params = {
             "amount": 1,
@@ -58,37 +82,51 @@ class Trivia:
         if difficulty:
             params["difficulty"] = difficulty
         
-        r = requests.get("https://opentdb.com/api.php", params=params)
-        if not r.ok:
-            raise BotError(TRIVIA_BASE_ERROR_MESSAGE)
-        
-        json_response = r.json()
-        if json_response["response_code"] != 0:
-            raise BotError(TRIVIA_BASE_ERROR_MESSAGE)
+        try:
+            response = requests.get(f"{TRIVIA_BASE_URL}/api.php", params=params)
+            if not response.ok:
+                print("Trivia API call did not give an ok (200) response")
+                raise BotError(f"{TRIVIA_BASE_ERROR_MESSAGE}")
+            
+            json_response = response.json()
+            if RESPONSE_CODE_STR not in json_response or json_response[RESPONSE_CODE_STR] != 0 or \
+                RESULTS_STR not in json_response or len(json_response[RESULTS_STR]) == 0:
+                print("Invalid trivia json response, parsing aborted")
+                raise BotError(f"{TRIVIA_BASE_ERROR_MESSAGE}")
+            
+            response = json_response[RESULTS_STR][0]
 
-        r = json_response["results"][0]
-        self.category = unescape(r["category"])
-        self.type = unescape(r["type"])
-        self.difficulty = unescape(r["difficulty"])
-        self.question = unescape(r["question"])
-        self.correct_answer = unescape(r["correct_answer"])
-        self.answers = list(map(lambda item: unescape(item), r["incorrect_answers"]))
-        self.answers.append(self.correct_answer)
-        self.answers.sort()
+            result = Trivia()
+            result.category = unescape(response["category"])
+            result.type = unescape(response["type"])
+            result.difficulty = unescape(response["difficulty"])
+            result.question = unescape(response["question"])
+            result.correct_answer = unescape(response["correct_answer"])
+            result.answers = list(map(lambda item: unescape(item), response["incorrect_answers"]))
+            result.answers.append(result.correct_answer)
+            result.answers.sort()
 
-    def question(self):
-        return self.question
+            return result
 
-    def answers(self):
-        return self.answers
+        except Exception as err:
+            print(f"Trivia fetchQuestion error\n\t{str(err)}")
+            raise BotError(err)
+    
+    def __init__(self):
+        self.category = None
+        self.type = None
+        self.difficulty = None
+        self.question = None
+        self.correct_answer = None
+        self.answers = None
 
     def formatted_response(self):
         offset = 65
-        res = "*Category* - {}\n".format(self.category)
-        res += "*Difficulty* - {}\n\n".format(self.difficulty.capitalize())
-        res += "_{}_\n\n".format(self.question)
+        res = f"*Category* - {self.category}\n"
+        res += f"*Difficulty* - {self.difficulty.capitalize()}\n\n"
+        res += f"_{self.question}_\n\n"
         for i, ans in enumerate(self.answers):
-            res += "{}. {}\n".format(chr(i + offset), ans)
+            res += f"{chr(i + offset)}. {ans}\n"
         return res
 
     def correct_answer_index(self):

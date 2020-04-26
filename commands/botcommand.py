@@ -4,8 +4,9 @@ import requests
 
 # This class defines the base class that all commands for the bot must inherit from
 class BotCommand:
-    def __init__(self, query):
+    def __init__(self, query, command_arguments=None):
         self.query = query
+        self.command_arguments = command_arguments
         self.ignore_edited = True
         self.response_json = None
 

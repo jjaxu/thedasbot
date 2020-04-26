@@ -3,6 +3,8 @@ INLINE_QUERY_KEY = "inline_query"
 CALLBACK_QUERY_KEY = "callback_query"
 EDITED_MESSAGE_KEY = "edited_message"
 MESSAGE_KEY = "message"
+MESSAGE_ID_KEY = "message_id"
+DATA_KEY = "data"
 ID_KEY = "id"
 CHAT_ID_KEY = "chat_id"
 QUERY_KEY = "query"
@@ -20,3 +22,7 @@ PRIVATE_STR = "private"
 
 # API endpoints
 SEND_MESSAGE_ENDPOINT = "sendMessage"
+EDIT_MESSAGE_ENDPOINT = "editMessageText"
+
+# Other
+ASCII_ALPHABET_OFFSET = 65
