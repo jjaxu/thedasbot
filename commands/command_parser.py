@@ -4,6 +4,7 @@ from .help_command import HelpCommand
 from .joke_command import JokeCommand
 from .fact_command import FactCommand
 from .trivia_command import TriviaCommand
+from .trends_command import TrendsCommand
 from .invalid_command import InvalidCommand
 from botquery import BotQuery
 from shlex import split as sh_split
@@ -14,7 +15,8 @@ AVAILABLE_COMMANDS = {
     "help": HelpCommand,
     "joke": JokeCommand,
     "fact": FactCommand,
-    "trivia": TriviaCommand
+    "trivia": TriviaCommand,
+    "trends": TrendsCommand
 }
 
 class CommandParser:

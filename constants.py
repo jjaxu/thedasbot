@@ -16,6 +16,7 @@ TITLE_KEY = "title"
 FIRST_NAME_KEY = "first_name"
 LAST_NAME_KEY = "last_name"
 PARSE_MODE_KEY = "parse_mode"
+PHOTO_KEY = "photo"
 
 GROUP_STR = "group"
 PRIVATE_STR = "private"
@@ -23,6 +24,10 @@ PRIVATE_STR = "private"
 # API endpoints
 SEND_MESSAGE_ENDPOINT = "sendMessage"
 EDIT_MESSAGE_ENDPOINT = "editMessageText"
+SEND_PHOTO_ENDPOINT = "sendPhoto"
 
 # Other
 ASCII_ALPHABET_OFFSET = 65
+NEW_LINE_CHAR = '\n'
+SPACE = ' '
+UNDERSCORE = '_'
