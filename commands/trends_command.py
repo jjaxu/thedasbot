@@ -8,7 +8,7 @@ from .botcommand import BotCommand
 from boterror import BotError
 from botquery import BotQuery
 from config import BASE_URL
-from constants import SEND_PHOTO_ENDPOINT, PHOTO_KEY, CHAT_ID_KEY, NEW_LINE_CHAR, SPACE, UNDERSCORE
+from constants import SEND_PHOTO_ENDPOINT, PHOTO_KEY, CHAT_ID_KEY, NEW_LINE_CHAR, SPACE, UNDERSCORE, PARSE_MODE_KEY, UNDERSCORE, SPACE
 
 """
 returns the associated response dictionary key w.r.t to a country's name
@@ -19,7 +19,7 @@ def get_country_key(name: str):
     name_formatted = name.strip().replace(SPACE, UNDERSCORE).lower()
     if name_formatted == 'new_zealand':
         return 'new zealand' # For some reason, New Zealand is the only country without an underscore in the response
-    if name_formatted in { 'us', 'usa', 'states', 'america' }:
+    if name_formatted in { 'us', 'usa', 'states', 'america' }: # For user convenience
         return 'united_states'
     return name_formatted
 
@@ -38,22 +38,21 @@ def get_initial_date(current_date: date, time_delta_str: str):
     try:
         unit = time_delta_str[-1]
         time = int(time_delta_str[:-1])
-        time_difference = None
         
         return current_date - timedelta(days=time * allowed_units_map[unit])
     except:
         raise BotError(f"Invalid argument '{time_delta_str}' for option '{TrendsCommand.TIME_FLAG}'")
 
 """
-Validates the string 'year' is a valid year. 'year' should be in the form of 'YYYY'
+Validates the string 'year' is a valid year.
 """
 def validate_year_str(year_str: str):
     try:
         year = int(year_str)
-        if year < 0:
+        if year <= 0:
             raise
     except:
-        raise BotError(f"Invalid year '{year}'")
+        raise BotError(f"Invalid year '{year_str}'")
 
 """
 Formats a list of items into a newline-separated string with their rankings.
@@ -65,18 +64,34 @@ eg. ["Apple", "Banana", "Cherry"] ->
 def format_list_items(data, key):
     return NEW_LINE_CHAR.join([ f"{i}. {item}" for i, item in enumerate(data[key], start=1) ])
 
+"""
+Gets the TrendsReq object from the pytrends library to start fetching trends data
+"""
+def get_trends_req():
+    return TrendReq(hl="en-US", tz=360)
+
+
 class TrendsCommand(BotCommand):
     KEYWORDS_STR = 'keywords'
+    GRAPH_FLAG = 'graph'
+    HELP_FLAG = 'help'
     TIME_FLAG = '--time'
-    TRENDING_TAG = '--trending'
-    TOP_TAG = '--top'
+    TIME_FLAG_SHORT = '-t'
+    TRENDING_FLAG = 'trending'
+    TOP_FLAG = 'top'
     DEFAULT_TIME_DELTA = '12m'
     DEFAULT_TRENDING_LOCATION = 'united_states'
     FIGURE_NAME = 'figure.png'
 
     @classmethod
     def get_help_text(cls):
-        pass
+        usage_text_graph = "1. Graphing mode - Graphs trends on a plot. `time` is in the format `<number><unit>`, where `unit` can be one of `d`, `w`, `m`, or `y` (default `12m`).\n/trends graph \[ -t <time> ] <keywords>"
+
+        usage_text_top = "2. Top trends mode - Gets the top searches for a given year (default previous year)\n/trends top \[year]"
+        
+        usage_text_trending = "3. Trending mode - Gets the current trending searches (default US)\n/trends trending \[country]"
+
+        return f"*Google Trends command help*\n\n{usage_text_graph}\n\n{usage_text_top}\n\n{usage_text_trending}"
 
     def execute(self):
         if self.skip_edited():
@@ -84,34 +99,33 @@ class TrendsCommand(BotCommand):
 
         try:
             command_dict = self.parse_flags_and_keywords(self.command_arguments[1:])
-
-            if self.TRENDING_TAG in command_dict:
-                self.execute_trending_searches(command_dict.get(self.TRENDING_TAG) or self.DEFAULT_TRENDING_LOCATION)
-            elif self.TOP_TAG in command_dict:
-                self.execute_top_searches(command_dict.get(self.TOP_TAG) or str(date.today().year - 1))
+            if self.HELP_FLAG in command_dict:
+                self.handle_normal_query(self.get_help_text())
+            elif self.TRENDING_FLAG in command_dict:
+                self.execute_trending_searches(command_dict.get(self.TRENDING_FLAG) or self.DEFAULT_TRENDING_LOCATION)
+            elif self.TOP_FLAG in command_dict:
+                self.execute_top_searches(command_dict.get(self.TOP_FLAG) or str(date.today().year - 1))
             else:
-                self.execute_compare(command_dict)
+                self.execute_graph(command_dict.get(self.GRAPH_FLAG))
 
         except BotError as err:
             self.handle_normal_query(f"Unable to fetch the trends: {str(err)}")
         except Exception as err:
             print(f"Unchecked exception in TrendsCommand:\n\t{str(err)}")
-            import traceback
-            traceback.print_exc()
             self.handle_normal_query("Oops! Can't fetch trends right now.")
 
-    def execute_compare(self, command_dict):
+    def execute_graph(self, graph_data_dict):
         today = date.today()
-        keywords = command_dict[self.KEYWORDS_STR]
+        keywords = graph_data_dict[self.KEYWORDS_STR]
 
         if len(keywords) == 0:
-            raise BotError("No keywords provided")
+            raise BotError("No keywords provided for graphing")
         
-        time_difference_str = command_dict.get(self.TIME_FLAG) or self.DEFAULT_TIME_DELTA
+        time_difference_str = graph_data_dict.get(self.TIME_FLAG) or self.DEFAULT_TIME_DELTA
         
         initial_date = get_initial_date(today, time_difference_str)
 
-        pytrend = TrendReq(hl="en-US", tz=360)
+        pytrend = get_trends_req()
         pytrend.build_payload(
             kw_list=keywords,
             cat=0,
@@ -123,7 +137,6 @@ class TrendsCommand(BotCommand):
         if data.empty:
             raise BotError("Not enough data to be shown")
         
-        # data.drop(labels=['isPartial'],axis='columns', inplace=True)
         image = data.plot(title = f"Google Trends data ({time_difference_str})")
         image.set_xlabel("Time")
         image.set_ylabel("Interest")
@@ -136,25 +149,26 @@ class TrendsCommand(BotCommand):
 
     def execute_trending_searches(self, location):
         try:
-            pytrend = TrendReq(hl="en-US", tz=360)
-            data = pytrend.trending_searches(pn=location) # united_states
+            pytrend = get_trends_req()
+            data = pytrend.trending_searches(pn=location)
             self.handle_normal_query(f"Current trending searches ({location.replace(UNDERSCORE, SPACE).title()}):{NEW_LINE_CHAR}{NEW_LINE_CHAR}{format_list_items(data, 0)}")
         except KeyError:
+            location = location.replace(UNDERSCORE, SPACE)
             raise BotError(f"There's no trending searches in '{location}'")
         except Exception:
+            location = location.replace(UNDERSCORE, SPACE)
             raise BotError(f"Could not get trending searches for '{location}'")
 
     def execute_top_searches(self, year):
         try:
             validate_year_str(year)
-            pytrend = TrendReq(hl="en-US", tz=360)
-            data = pytrend.top_charts(year, hl='en-US', tz=300, geo='GLOBAL')
+            pytrend = get_trends_req()
+            data = pytrend.top_charts(year, hl='en-US', tz=360, geo='GLOBAL')
             self.handle_normal_query(f"Top searches of {year}:{NEW_LINE_CHAR}{NEW_LINE_CHAR}{format_list_items(data, 'title')}")
         except BotError:
             raise
         except Exception:
             raise BotError(f"Could not get top searches for '{year}'")
-
 
     def handle_image_query(self, img_name):
         with open(img_name, 'rb') as input_file:
@@ -165,35 +179,41 @@ class TrendsCommand(BotCommand):
             url = f"{BASE_URL}/{SEND_PHOTO_ENDPOINT}"
             res = requests.post(url, data=self.response_json, files = {'photo': input_file})
             if not res.ok:
-                print(f"sendPhoto did not complete successfully. Code: {res.status_code}\n\t{res.text}")
+                print(f"the {SEND_PHOTO_ENDPOINT} response was not ok. Code: {res.status_code}\n\t{res.text}")
 
     def parse_flags_and_keywords(self, arguments):
-        keywords = []
-        result = dict()
-        i = 0
-        while i < len(arguments):
-            if arguments[i] == self.TIME_FLAG:
-                try:
-                    result[self.TIME_FLAG] = arguments[i+1]
-                    i += 1
-                except:
-                    raise BotError(f"No arguments provided for option '{self.TIME_FLAG}'")
-            elif arguments[i] == self.TOP_TAG:
-                if i == len(arguments) - 1:
-                    result[self.TOP_TAG] = None
-                else:
-                    result[self.TOP_TAG] = arguments[i+1]
-                    i += 1
-            elif arguments[i] == self.TRENDING_TAG:
-                if i == len(arguments) - 1:
-                    result[self.TRENDING_TAG] = None
-                else:
-                    result[self.TRENDING_TAG] = get_country_key(arguments[i+1])
-                    i += 1
-            else:
-                keywords.append(arguments[i])
-            i += 1
+        arg_len = len(arguments)
+        if arg_len == 0:
+            raise BotError("No mode provided. Use '/trends help' for more info")
 
-        result[self.KEYWORDS_STR] = keywords
+        mode = arguments[0].lower()
+        result = dict()
+
+        if mode == self.GRAPH_FLAG: 
+            result[self.GRAPH_FLAG] = dict()
+            keywords = []
+            i = 1
+            while i < len(arguments):
+                arg = arguments[i].lower()
+                if arg == self.TIME_FLAG or arg == self.TIME_FLAG_SHORT:
+                    try:
+                        result[self.GRAPH_FLAG][self.TIME_FLAG] = arguments[i+1]
+                        i += 1
+                    except:
+                        raise BotError(f"No argument provided for option '{arguments[i]}'")
+                else:
+                    keywords.append(arguments[i])
+                i += 1
+            result[self.GRAPH_FLAG][self.KEYWORDS_STR] = keywords
+        elif mode == self.TOP_FLAG:
+            result[self.TOP_FLAG] = arguments[1] if arg_len > 1 else None
+        elif mode == self.TRENDING_FLAG:
+            result[self.TRENDING_FLAG] = get_country_key(arguments[1]) if arg_len > 1 else None
+        elif mode == self.HELP_FLAG:
+            result[self.HELP_FLAG] = None
+        else:
+            raise BotError(f"Unknown mode '{arguments[0]}'")
         return result
-        
+
+    def format_response_json(self):
+        self.response_json[PARSE_MODE_KEY] = "Markdown"
