@@ -8,7 +8,7 @@ from .botcommand import BotCommand
 from boterror import BotError
 from botquery import BotQuery
 from config import BASE_URL
-from constants import SEND_PHOTO_ENDPOINT, PHOTO_KEY, CHAT_ID_KEY, NEW_LINE_CHAR, SPACE, UNDERSCORE, PARSE_MODE_KEY, UNDERSCORE, SPACE, EN_US, TIMEZONE_OFFSET_MINUTES
+from constants import SEND_PHOTO_ENDPOINT, PHOTO_KEY, CHAT_ID_KEY, NEW_LINE_CHAR, SPACE, UNDERSCORE, PARSE_MODE_KEY, UNDERSCORE, SPACE, EN_US_LOCALE, TIMEZONE_OFFSET_MINUTES
 
 """
 Returns the associated response dictionary key w.r.t to a country's name
@@ -64,7 +64,7 @@ def format_list_items(data, key):
 Gets the TrendsReq object from the pytrends library to start fetching trends data
 """
 def get_trends_req():
-    return TrendReq(hl=EN_US, tz=TIMEZONE_OFFSET_MINUTES)
+    return TrendReq(hl=EN_US_LOCALE, tz=TIMEZONE_OFFSET_MINUTES)
 
 
 class TrendsCommand(BotCommand):
@@ -159,7 +159,7 @@ class TrendsCommand(BotCommand):
         try:
             validate_year_str(year)
             pytrend = get_trends_req()
-            data = pytrend.top_charts(year, hl=EN_US, tz=TIMEZONE_OFFSET_MINUTES, geo='GLOBAL')
+            data = pytrend.top_charts(year, hl=EN_US_LOCALE, tz=TIMEZONE_OFFSET_MINUTES, geo='GLOBAL')
             self.handle_normal_query(f"Top searches of {year}:{NEW_LINE_CHAR}{NEW_LINE_CHAR}{format_list_items(data, 'title')}")
         except BotError:
             raise
