@@ -5,6 +5,7 @@ from commands.help_command import HelpCommand
 from commands.joke_command import JokeCommand
 from commands.fact_command import FactCommand
 from commands.trivia_command import TriviaCommand
+from commands.trends_command import TrendsCommand
 from commands.invalid_command import InvalidCommand
 from commands.command_parser import CommandParser
 
@@ -54,6 +55,13 @@ class CommandParserTest(unittest.TestCase):
 
         result = CommandParser.parse_command(query)
         self.assertIsInstance(result, TriviaCommand)
+        self.assertIs(query, result.query)
+
+    def test_trends_command(self):
+        query = BotQuery()
+        query.message = " /Trends "
+        result = CommandParser.parse_command(query)
+        self.assertIsInstance(result, TrendsCommand)
         self.assertIs(query, result.query)
 
     def test_empty_command(self):
