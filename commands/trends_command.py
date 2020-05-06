@@ -8,12 +8,12 @@ from .botcommand import BotCommand
 from boterror import BotError
 from botquery import BotQuery
 from config import BASE_URL
-from constants import SEND_PHOTO_ENDPOINT, PHOTO_KEY, CHAT_ID_KEY, NEW_LINE_CHAR, SPACE, UNDERSCORE, PARSE_MODE_KEY, UNDERSCORE, SPACE
+from constants import SEND_PHOTO_ENDPOINT, PHOTO_KEY, CHAT_ID_KEY, NEW_LINE_CHAR, SPACE, UNDERSCORE, PARSE_MODE_KEY, UNDERSCORE, SPACE, EN_US, TIMEZONE_OFFSET_MINUTES
 
 """
-returns the associated response dictionary key w.r.t to a country's name
+Returns the associated response dictionary key w.r.t to a country's name
 eg. United States -> united_states
-    canada -> Canada
+    Canada -> canada
 """
 def get_country_key(name: str):
     name_formatted = name.strip().replace(SPACE, UNDERSCORE).lower()
@@ -47,11 +47,7 @@ def get_initial_date(current_date: date, time_delta_str: str):
 Validates the string 'year' is a valid year.
 """
 def validate_year_str(year_str: str):
-    try:
-        year = int(year_str)
-        if year <= 0:
-            raise
-    except:
+    if not year_str.isnumeric() or int(year_str) <= 0:
         raise BotError(f"Invalid year '{year_str}'")
 
 """
@@ -68,7 +64,7 @@ def format_list_items(data, key):
 Gets the TrendsReq object from the pytrends library to start fetching trends data
 """
 def get_trends_req():
-    return TrendReq(hl="en-US", tz=360)
+    return TrendReq(hl=EN_US, tz=TIMEZONE_OFFSET_MINUTES)
 
 
 class TrendsCommand(BotCommand):
@@ -163,7 +159,7 @@ class TrendsCommand(BotCommand):
         try:
             validate_year_str(year)
             pytrend = get_trends_req()
-            data = pytrend.top_charts(year, hl='en-US', tz=360, geo='GLOBAL')
+            data = pytrend.top_charts(year, hl=EN_US, tz=TIMEZONE_OFFSET_MINUTES, geo='GLOBAL')
             self.handle_normal_query(f"Top searches of {year}:{NEW_LINE_CHAR}{NEW_LINE_CHAR}{format_list_items(data, 'title')}")
         except BotError:
             raise

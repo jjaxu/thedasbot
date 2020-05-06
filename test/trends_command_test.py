@@ -46,15 +46,14 @@ class TrendsCommandTest(unittest.TestCase):
         validate_year_str("2019")
         validate_year_str("1978")
         validate_year_str("100")
-        validate_year_str(2019)
     
     def test_validate_year_str_bad(self):
         self.assertRaises(BotError, validate_year_str, "0")
         self.assertRaises(BotError, validate_year_str, "-2020")
         self.assertRaises(BotError, validate_year_str, "year")
-        self.assertRaises(BotError, validate_year_str, None)
-        self.assertRaises(BotError, validate_year_str, -100)
-        self.assertRaises(BotError, validate_year_str, {})
+        self.assertRaises(BotError, validate_year_str, "2017b")
+        self.assertRaises(BotError, validate_year_str, "-100")
+        self.assertRaises(BotError, validate_year_str, "")
         
     def test_trending_default(self):
         query = BotQuery()
