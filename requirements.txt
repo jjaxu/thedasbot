@@ -1,5 +1,1 @@
 requests
-lxml
-pandas
-pytrends
-matplotlib

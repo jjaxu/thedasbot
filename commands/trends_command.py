@@ -1,7 +1,17 @@
-import matplotlib
 import requests
-import pandas as pd
-from pytrends.request import TrendReq
+try:
+    import matplotlib
+except Exception as err:
+    import traceback
+    print(f"Failed to import matplotlib!\n\n\t{str(err)}")
+    traceback.print_exc()
+try:
+    from pytrends.request import TrendReq
+except Exception as err:
+    import traceback
+    print(f"Failed to import pytrends!\n\n\t{str(err)}")
+    traceback.print_exc()
+
 from datetime import date, timedelta
 
 from .botcommand import BotCommand
@@ -77,7 +87,7 @@ class TrendsCommand(BotCommand):
     TOP_FLAG = 'top'
     DEFAULT_TIME_DELTA = '12m'
     DEFAULT_TRENDING_LOCATION = 'united_states'
-    FIGURE_NAME = 'figure.png'
+    TEMP_FIGURE_PATH = '/tmp/figure.png'
 
     @classmethod
     def get_help_text(cls):
@@ -139,9 +149,9 @@ class TrendsCommand(BotCommand):
         matplotlib.pyplot.gcf().subplots_adjust(bottom=0.15)
 
         fig = image.get_figure()
-        fig.savefig(self.FIGURE_NAME)
+        fig.savefig(self.TEMP_FIGURE_PATH)
 
-        self.handle_image_query(self.FIGURE_NAME)
+        self.handle_image_query(self.TEMP_FIGURE_PATH)
 
     def execute_trending_searches(self, location):
         try:
