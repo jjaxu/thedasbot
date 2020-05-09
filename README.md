@@ -1,6 +1,6 @@
 # The "Do All Stuff" (DAS) Telegram Bot #
 
-The DAS bot is a webhook based telegram bot written in Python 3.7 deployed on AWS Lambda. It is capable of fetching jokes, fun facts, as well as as multiple choice trivia questions and fetch insights from Google Trends (As along as those APIs' remain functional).
+The DAS bot is a webhook-based Telegram bot that is written in Python 3.7 and deployed on AWS Lambda. It is capable of telling jokes, sharing fun facts, hosting trivia sessions, and fetching insights from Google Trends.
 
 ## Usage ##
 Interact with the bot **[@thedasbot](https://t.me/thedasbot)** on Telegram. It supports both private and group chats.
