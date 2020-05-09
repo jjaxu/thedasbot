@@ -61,7 +61,7 @@ Fetches a random fun fact from [Mental Floss](https://www.mentalfloss.comamazing
 **Syntax:** `/fact`
     
 ## Contributing ##
-Got an feature idea? Make a pull request! New features and improvements are always welcome! New commands should inherit the `BotCommand` class, override at least the `execute` method, and placed inside the `commands/` directory. Also, the command must be added to the `AVAILABLE_COMMANDS` dictionary in `command_parser.py` to be recognized by the parser.
+New features and improvements are always welcome! Commands should inherit the `BotCommand` class, override the `execute` method, and be placed inside the `commands/` directory. Also, the command must be added to the `AVAILABLE_COMMANDS` constant in `command_parser.py` to be recognized by the parser.
 
 ### Local Testing ###
 To test the project locally:
