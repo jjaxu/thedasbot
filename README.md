@@ -30,7 +30,7 @@ Gets a random, interactable multiple choice question from [Open Trivia Database]
 * `/trivia any hard` - Hard question from a random category
 
 ### Trends ###
-Gets insights from Google Trends; capble graphing trends, pulling top trends, and realtime trending searches. It uses the [pytrends](https://github.com/GeneralMills/pytrends) library.
+Fetches insights from Google Trends. Features the ability to graph trends by keyword and list top / trending keywords by year. All communication is handled using [pytrends](https://github.com/GeneralMills/pytrends).
 
 **Syntax:** `/trends <mode> [arguments]`
 * `mode` is one of `{ help, graph, top, trending }`
