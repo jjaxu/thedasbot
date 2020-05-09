@@ -64,4 +64,8 @@ Fetches a random fun fact from [Mental Floss](https://www.mentalfloss.comamazing
 Got an feature idea? Make a pull request! New features and improvements are always welcome! New commands should inherit the `BotCommand` class, override at least the `execute` method, and placed inside the `commands/` directory. Also, the command must be added to the `AVAILABLE_COMMANDS` dictionary in `command_parser.py` to be recognized by the parser.
 
 ### Local Testing ###
-My local webhook setup uses [bottle](https://pypi.org/project/bottle/) and [ngrok](https://ngrok.com/download). This [guide](https://hackernoon.com/serverless-telegram-bot-on-aws-lambda-851204d4236c) is what I used to setup my local environment. If you want to use the same setup, run `install_local`, then `python3 local.py` after you have ngrok running and webhook set.
+To test the project locally:
+1. Setup [bottle](https://pypi.org/project/bottle/) and [ngrok](https://ngrok.com/download)
+2. Setup the local environment using the following [guide](https://hackernoon.com/serverless-telegram-bot-on-aws-lambda-851204d4236c)
+3. Launch `ngrok` and update the webhook to the project
+4. Run `install_local`, then `python3 local.py`
