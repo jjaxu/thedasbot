@@ -17,7 +17,7 @@ Gets a random, interactable multiple choice question from [Open Trivia Database]
 
 **Syntax:** `/trivia [ <category> | any | help ] [ <difficulty> | any ]`
 
-- `/trivia help` brings up the list of available categories and difficulties. Categories do not need to exactly match what's listed, as long it's enough to uniquely identify it. Leaving any arguments blank will default to `any`, which selects a random category/difficulty.
+- `/trivia help` brings up the list of available categories and difficulties. Categories support fuzzy matching. All arguments default to `any`, which selects a random category/difficulty.
 
 **Examples**
 
