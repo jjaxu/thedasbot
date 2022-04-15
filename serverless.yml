@@ -2,10 +2,10 @@ service: thedasbot
 
 provider:
   name: aws
-  runtime: python3.7
+  runtime: python3.9
   stage: prod
   region: us-east-1
-  profile: thedasbot
+  profile: botprofile
   environment:
     TELEGRAM_TOKEN: ${env:TELEGRAM_TOKEN}
   resourcePolicy:
